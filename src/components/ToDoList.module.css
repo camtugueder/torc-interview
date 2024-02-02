@@ -1,0 +1,29 @@
+.toDoListContainer {
+    margin: 10px;
+    background-color: white;
+    width: 100%;
+}
+
+.friendName {
+    color: white;
+}
+
+.taskList {
+    padding: 0;
+}
+
+.task {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.leftArrow, .rightArrow {
+    cursor: pointer;
+    color: blue;
+}
+
+.disabled {
+    cursor: default;
+    color: red;
+}
