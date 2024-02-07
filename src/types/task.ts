@@ -1,4 +1,5 @@
 export interface Task {
-  id: number;
+  id?: number;
+  friend_id: number;
   description: string;
 }

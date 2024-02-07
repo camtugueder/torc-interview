@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import SharedToDoList from "./components/SharedToDoList";
+import { Group } from "./types/group";
 
 function App() {
-  const friends = [{name:'Adam', color:'blue'},{name:'Brian', color:'red'},{name:'Charlie', color:'orange'},{name:'Dave', color:'black'}]
+  const [groups, setGroups] = useState<Group[]>([]);
+
+
+  useEffect(() => {
+    fetch('http://localhost:3000/groups/all_details')
+      .then(response => response.json())
+      .then(data => {
+        // Set the fetched data to your component's state or context
+        setGroups(data)
+      }).catch(()=>{
+
+    });
+  }, []);
 
   return (
     <div className="App">
-      <SharedToDoList friends={friends}></SharedToDoList>
+      {groups.map((group:Group)=>(
+        <SharedToDoList friends={group.friends}></SharedToDoList>
+      ))}
+
     </div>
   );
 }

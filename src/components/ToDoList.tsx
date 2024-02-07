@@ -3,24 +3,38 @@ import styles from "./ToDoList.module.css";
 import { Task } from "../types/task";
 import useLocalStorage from "../hooks/useLocalStorage";
 interface ToDoListProps {
+  friendId: number;
   friendName: string;
   color: string;
-  registerUpdateFunction: (friendName: string, func: React.Dispatch<React.SetStateAction<Task[]>> ) => void;
-  moveTask: (fromFriend:string, toFriend:string, task:Task, index:number) => void;
-  previousFriendName: string;
-  nextFriendName: string;
+  registerUpdateFunction: (friendId: number, func: React.Dispatch<React.SetStateAction<Task[]>> ) => void;
+  moveTask: (fromFriend:number, toFriend:number, task:Task, index:number) => void;
+  previousFriendId: number;
+  nextFriendId: number;
+  friendTasks: Task[];
 }
 
-const ToDoList = ({friendName, color, registerUpdateFunction, moveTask, previousFriendName, nextFriendName}:ToDoListProps) => {
-  const [tasks, setTasks] = useLocalStorage<Task[]>(friendName + '_todo', [])
+const ToDoList = ({friendId, friendTasks, friendName, color, registerUpdateFunction, moveTask, previousFriendId, nextFriendId}:ToDoListProps) => {
+  const [tasks, setTasks] = useState<Task[]>(friendTasks);
 
   useEffect(()=>{
-    registerUpdateFunction(friendName, setTasks);
+    registerUpdateFunction(friendId, setTasks);
   }, [])
 
   const addTask = () => {
     const desc = prompt('Describe the new task for ' + friendName + ':');
-    if (desc) setTasks((prevState:Task[])=> [...prevState, {id: Date.now(), description: desc}]);
+    if (desc) {
+      let task:Task = {description: desc, friend_id: friendId}
+      fetch("http://localhost:3000/tasks",
+        {
+          headers: {"Content-Type": "application/json"},
+          method: "POST",
+          body: JSON.stringify({ "task":task } )
+        })
+        .then(function(res){ return res.json(); })
+        .then(function(data){
+          setTasks((prev) => [...prev, data as Task])
+        });
+    }
   }
 
   return (
@@ -32,9 +46,9 @@ const ToDoList = ({friendName, color, registerUpdateFunction, moveTask, previous
         {tasks.map((task:Task, index:number)=>{
           return(
             <li className={styles.task} key={task.id}>
-              <div className={`${styles.leftArrow} ${!previousFriendName ? styles.disabled : ''}`} onClick={()=> previousFriendName ? moveTask(friendName, previousFriendName, task, index) : undefined}>&larr;</div>
+              <div className={`${styles.leftArrow} ${ previousFriendId === -1 ? styles.disabled : ''}`} onClick={()=> previousFriendId > 0 ? moveTask(friendId, previousFriendId, task, index) : undefined}>&larr;</div>
               <div className={styles.description}>{task.description}</div>
-              <div className={`${styles.rightArrow} ${!nextFriendName ? styles.disabled : ''}`} onClick={()=> nextFriendName ? moveTask(friendName, nextFriendName, task, index) : undefined}>&rarr;</div>
+              <div className={`${styles.rightArrow} ${ nextFriendId === -1 ? styles.disabled : ''}`} onClick={()=> nextFriendId > 0 ? moveTask(friendId, nextFriendId, task, index) : undefined}>&rarr;</div>
             </li>
           )
         })}
